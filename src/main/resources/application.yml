@@ -1,0 +1,54 @@
+server:
+  port: 8101
+  servlet:
+    context-path: /localmq
+
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    hikari:
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+      maximum-pool-size: 30
+      minimum-idle: 20
+    url: jdbc:mysql://localhost:3306/user?useUnicode=true&characterEncoding=utf8&autoReconnect=true&failOverReadOnly=false&allowMultiQueries=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.jdbc.Driver
+  rabbitmq:
+    host: 127.0.0.1
+#    host: 172.16.100.31
+    port: 5672
+#    username: ylx
+    username: admin
+    password: 123456
+    virtual-host: /ylx
+    dynamic: true
+    # 支持发布确认
+    publisher-confirms: true
+    # 支持发布返回
+    publisher-returns: true
+    listener:
+        simple:
+    # 采用自动应答
+          acknowledge-mode: auto
+    # 当前监听容器数
+          concurrency: 3
+    # 最大数
+          max-concurrency: 3
+    # 是否支持重试
+          retry:
+            enabled: true
+    # 相当于channel.basicQos(1)，work模式中多劳多得的模式
+          prefetch: 1
+
+#Mybatis
+mybatis:
+  mapper-locations: /xmls/*.xml
+  configuration:
+    call-setters-on-nulls: true
+    cache-enabled: false
+    use-generated-keys: true
+    use-column-label: true
+    map-underscore-to-camel-case: true
