@@ -13,6 +13,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
 import java.io.UnsupportedEncodingException;
 import java.util.concurrent.TimeUnit;
@@ -42,6 +44,9 @@ public class MqController {
     @Autowired
     private RedisUtil redisUtil;
 
+    @Autowired
+    private JedisPool jedisPool;
+
     @RequestMapping("/testSimple")
     public String testSimple(){
         amqpTemplate.convertAndSend("bootQueue1","test");
@@ -68,6 +73,11 @@ public class MqController {
         return "success";
     }
 
+    /**
+     * 最单纯的秒杀，队列事先放好消息，然后秒杀用户从中获取，当然用户可以多次获取
+     * @return
+     * @throws UnsupportedEncodingException
+     */
     @RequestMapping("/miaosha")
     public String maiosha() throws UnsupportedEncodingException {
         Message message = amqpTemplate.receive("test_queue");
@@ -81,6 +91,7 @@ public class MqController {
 
     /**
      * 一个用户只能抢一个商品的秒杀业务
+     * "思路是先在对列中放好消息，秒杀的时候直接从队列中去获取消息"，注意：一个用户只能获取一个商品
      * @param user
      * @return
      */
@@ -108,6 +119,51 @@ public class MqController {
 //            redisUtil.set(RedisPrefix.MIAOSHA+uid,uid,10, TimeUnit.MINUTES);
 //            amqpTemplate.convertAndSend("miaoshaQueue",String.valueOf(uid));
 //            return "success of "+uid;
+        }
+    }
+
+
+    /**
+     * 一个用户可以抢多个商品
+     * "思路是直接往对列中放入消息，但是之前在redis中查看商品数量是否已经没了"
+     * @param user
+     * @return
+     */
+    @RequestMapping("/miaosha3")
+    public String miaosha3(@RequestBody User user){
+        long uid = user.getUid();
+        Jedis jedis = jedisPool.getResource();
+        try {
+            String total = jedis.get("total");
+            if(total == null || Integer.parseInt(total) < 0){
+                //说明商品已经被抢完了
+                return "fail";
+            }
+            amqpTemplate.convertAndSend("miaoshaQueue2",String.valueOf(uid));
+            return "success of "+uid;
+        }finally {
+            jedis.close();
+        }
+    }
+
+    /**
+     * 同上
+     * @param user
+     * @return
+     */
+    @RequestMapping("/miaosha4")
+    public String miaosha4(@RequestBody User user){
+        long uid = user.getUid();
+        Jedis jedis = jedisPool.getResource();
+        try {
+            if(jedis.decr("total") < 0){
+                //说明商品已经被抢完了
+                return "fail";
+            }
+            amqpTemplate.convertAndSend("miaoshaQueue3",String.valueOf(uid));
+            return "success of "+uid;
+        }finally {
+            jedis.close();
         }
     }
 

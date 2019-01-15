@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
+ * 配置对列类
  * @author ylx
  * Created by fuzamei on 2018/6/11.
  */
@@ -35,6 +36,14 @@ public class RabbitMqConfig {
     @Bean
     public Queue miaoshaQueue(){
         return new Queue("miaoshaQueue",false);
+    }
+    @Bean
+    public Queue miaoshaQueue2(){
+        return new Queue("miaoshaQueue2",false);
+    }
+    @Bean
+    public Queue miaoshaQueue3(){
+        return new Queue("miaoshaQueue3",false);
     }
 
 

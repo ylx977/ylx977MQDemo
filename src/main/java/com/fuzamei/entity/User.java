@@ -1,13 +1,21 @@
 package com.fuzamei.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
+import java.io.Serializable;
 
 /**
  * @author ylx
  * Created by fuzamei on 2018/8/7.
  */
 @Data
-public class User {
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class User implements Serializable{
 
     private Long uid;
     private String name;

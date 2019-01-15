@@ -42,6 +42,9 @@ spring:
             enabled: true
     # 相当于channel.basicQos(1)，work模式中多劳多得的模式
           prefetch: 1
+    template:
+      # rpc同步等待返回结果超时时间，超过超时时间，就会返回null
+      reply-timeout: 30000ms
 
 #Mybatis
 mybatis:
